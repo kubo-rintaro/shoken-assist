@@ -1,9 +1,3 @@
-// 「添削・誤字脱字」ボタンが押されたときに呼ばれます。
-// APIキーはこのサーバー側関数の中だけで使われ、利用者のブラウザには一切渡りません。
-//
-// 必要な環境変数（Netlifyの管理画面 > Site settings > Environment variables で設定）：
-//   GEMINI_API_KEY … Google AI Studioで取得したAPIキー
-
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
     return { statusCode: 405, body: "Method Not Allowed" };
@@ -11,8 +5,11 @@ exports.handler = async (event) => {
 
   const { text } = JSON.parse(event.body || "{}");
   if (!text) {
-    return { statusCode: 400, body: JSON.stringify({ error: "文章が入力されていません" }) };
+    return { statusCode: 400, body: JSON.stringify({ error: "必要な情報が不足しています" }) };
   }
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
   const systemPrompt = `あなたは日本語の文章を添削する校正者です。
 教員が書いた通知表の所見文について、誤字・脱字・不自然な表現・文法的な誤りのみを指摘してください。
@@ -27,35 +24,18 @@ exports.handler = async (event) => {
 指摘がない場合は issues を空配列にし、corrected_text には元の文章をそのまま入れてください。`;
 
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          system_instruction: {
-            parts: [{ text: systemPrompt }],
-          },
-          contents: [
-            {
-              role: "user",
-              parts: [{ text }],
-            },
-          ],
-          generationConfig: {
-            responseMimeType: "application/json",
-          },
-        }),
-      }
-    );
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: `${systemPrompt}\n\n対象の文章:\n${text}` }] }],
+      }),
+    });
 
     const data = await res.json();
     if (!res.ok) throw new Error(data?.error?.message || "AI呼び出しに失敗しました");
 
-    const raw =
-      data?.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("").trim() || "";
+    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
     const clean = raw.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(clean);
 
