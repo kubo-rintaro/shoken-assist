@@ -9,7 +9,7 @@ exports.handler = async (event) => {
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`;
 
   const systemPrompt = `あなたは日本語の文章を添削する校正者です。
 教員が書いた通知表の所見文について、誤字・脱字・不自然な表現・文法的な誤りのみを指摘してください。
@@ -26,7 +26,7 @@ exports.handler = async (event) => {
   try {
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
       body: JSON.stringify({
         contents: [{ parts: [{ text: `${systemPrompt}\n\n対象の文章:\n${text}` }] }],
       }),
