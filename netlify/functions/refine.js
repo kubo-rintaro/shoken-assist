@@ -9,7 +9,7 @@ exports.handler = async (event) => {
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`;
 
   const systemPrompt = `あなたは日本の学校の通知表・所見文の改良を手伝うアシスタントです。
 元の文章にない事実を創作せず、通知表として自然で丁寧な文体を保ってください。
@@ -18,7 +18,7 @@ exports.handler = async (event) => {
   try {
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
       body: JSON.stringify({
         contents: [{ parts: [{ text: `${systemPrompt}\n\n元の文章:\n${originalText}\n\n改良の指示:\n${instruction}` }] }],
       }),
