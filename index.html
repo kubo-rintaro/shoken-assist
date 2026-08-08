@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>所見アシスト（無料・登録不要）</title>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GPX21RZT22"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-GPX21RZT22');
+</script>
+<!-- PDFファイルの読み込みに使用 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Shippori+Mincho:wght@500;700&display=swap');
+  * { box-sizing: border-box; font-family: 'Zen Kaku Gothic New', sans-serif; }
+  body { margin: 0; background: #F3F1E9; color: #242220; }
+  .font-display { font-family: 'Shippori Mincho', serif; }
+  header { background: #2E4636; padding: 16px 20px; display:flex; align-items:center; gap:10px; }
+  header .logo { width:36px; height:36px; border-radius:50%; background:#B7282E; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; flex-shrink:0; }
+  header h1 { color:#fff; font-size:18px; margin:0; }
+  header p { color:rgba(255,255,255,0.6); font-size:11px; margin:2px 0 0; }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 20px; }
+  .card { background:#fff; border:1px solid #DDD7C5; border-radius:12px; padding:20px; margin-bottom:16px; }
+  label { display:block; font-size:12px; color:#8A8474; margin-bottom:4px; }
+  select, textarea, input { width:100%; border:1px solid #DDD7C5; border-radius:6px; padding:9px 10px; font-size:14px; margin-bottom:14px; background:#fff; }
+  textarea { resize:vertical; line-height:1.8; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .chips { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  .chip { border:1px solid #DDD7C5; background:#fff; color:#5A5648; border-radius:6px; padding:7px 12px; font-size:12px; cursor:pointer; }
+  .chip.active { background:#2E4636; color:#fff; border-color:#2E4636; }
+  button.primary { width:100%; background:#B7282E; color:#fff; border:none; border-radius:6px; padding:13px; font-size:14px; font-weight:600; cursor:pointer; }
+  button.primary:hover { opacity:0.92; }
+  .result { background:#fff; border:1px solid #DDD7C5; border-radius:10px; padding:14px; margin-bottom:10px; }
+  .result p { font-size:14px; line-height:1.8; margin:0 0 10px; }
+  .result .meta { display:flex; justify-content:space-between; align-items:center; }
+  .result .len { font-size:11px; color:#9A9483; }
+  .copy-btn { font-size:12px; background:#F3F1E9; border:none; border-radius:6px; padding:5px 10px; cursor:pointer; color:#5A5648; }
+  .ad { border:1px dashed #C9C2B2; color:#A39C88; background:#F7F5EF; display:flex; align-items:center; justify-content:center; font-size:11px; border-radius:6px; margin-bottom:16px; }
+  footer { text-align:center; font-size:11px; color:#9A9483; padding:20px; }
+  .actions { display:flex; gap:8px; }
+  .save-btn { font-size:12px; background:#EEF2ED; border:none; border-radius:6px; padding:5px 10px; cursor:pointer; color:#3F6B4A; }
+  .topbar { display:flex; justify-content:flex-end; margin-bottom:10px; }
+  .history-btn { font-size:12px; background:#2E4636; color:#fff; border:none; border-radius:6px; padding:8px 14px; cursor:pointer; }
+  #historyPanel { display:none; }
+  .hist-item { background:#fff; border:1px solid #DDD7C5; border-radius:10px; padding:14px; margin-bottom:10px; }
+  .hist-item .hmeta { display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#9A9483; margin-bottom:6px; }
+  .hist-item p { font-size:13px; line-height:1.7; margin:4px 0; }
+  .hist-item .actions { margin-top:8px; }
+  .del-btn { font-size:12px; background:#F7ECEA; border:none; border-radius:6px; padding:5px 10px; cursor:pointer; color:#B7282E; }
+  .empty { font-size:13px; color:#9A9483; text-align:center; padding:20px; }
+  .ai-btn { font-size:12px; background:#EFE7F5; border:none; border-radius:6px; padding:5px 10px; cursor:pointer; color:#6B3FA0; }
+  .proof-btn { font-size:12px; background:#E8F0F7; border:none; border-radius:6px; padding:5px 10px; cursor:pointer; color:#2A5C8A; }
+  .proof-result { display:none; margin-top:10px; border-top:1px dashed #DDD7C5; padding-top:10px; }
+  .proof-issue { background:#FBF6E9; border:1px solid #E9DDAF; border-radius:8px; padding:10px; margin-bottom:8px; font-size:13px; }
+  .proof-issue .label { font-weight:700; color:#8A6D1A; font-size:11px; margin-bottom:4px; }
+  .proof-ok { background:#EEF2ED; border:1px solid #CFE0D2; border-radius:8px; padding:10px; font-size:13px; color:#3F6B4A; }
+  .chat-box { display:none; margin-top:10px; border-top:1px dashed #DDD7C5; padding-top:10px; }
+  .chat-box textarea { min-height:50px; margin-bottom:8px; font-size:13px; }
+  .chat-send { font-size:12px; background:#6B3FA0; color:#fff; border:none; border-radius:6px; padding:7px 14px; cursor:pointer; }
+  .chat-result { background:#F7F3FB; border:1px solid #E1D3F0; border-radius:8px; padding:10px; margin-top:10px; font-size:13px; line-height:1.7; display:none; }
+  .chat-apply { font-size:12px; background:#6B3FA0; color:#fff; border:none; border-radius:6px; padding:5px 10px; cursor:pointer; margin-top:8px; }
+  .key-banner { background:#FFF8E8; border:1px solid #E9D89A; border-radius:8px; padding:12px 14px; margin-bottom:16px; font-size:12px; color:#6B5A2A; }
+  .key-banner input { margin-top:8px; }
+  .key-banner button { font-size:12px; background:#2E4636; color:#fff; border:none; border-radius:6px; padding:7px 14px; cursor:pointer; margin-top:6px; }
+  .key-status { font-size:11px; margin-top:6px; }
+  @media print {
+    body * { visibility:hidden; }
+    #printArea, #printArea * { visibility:visible; }
+    #printArea { position:absolute; top:0; left:0; width:100%; padding:24px; }
+  }
+  #printArea { display:none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">✎</div>
+  <div>
+    <h1 class="font-display">所見アシスト</h1>
+    <p>通知表コメントの下書きを、キーワードから作成（無料・登録不要）</p>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="key-banner" id="keyBanner">
+    <strong>🤖 AI機能（改良・添削）について</strong><br>
+    「AIで改良」「添削・誤字脱字」ボタンは、登録不要・追加操作なしでそのままお使いいただけます。
+    APIキーはサーバー側で管理しており、皆さんが入力する必要はありません。
+  </div>
+
+  <div class="topbar">
+    <button class="history-btn" onclick="toggleHistory()">📁 保存した所見文（<span id="histCount">0</span>）</button>
+  </div>
+
+  <div id="historyPanel">
+    <div id="historyList"></div>
+  </div>
+
+  <div class="ad" style="height:60px;">広告枠（728×90 想定）</div>
+
+  <div class="card">
+    <div class="row2">
+      <div>
+        <label>学年</label>
+        <select id="grade">
+          <option>小1</option><option>小2</option><option>小3</option>
+          <option>小4</option><option>小5</option><option>小6</option>
+          <option>中1</option><option>中2</option><option>中3</option>
+        </select>
+      </div>
+      <div>
+        <label>教科・分野（任意）</label>
+        <input id="subject" placeholder="例: 図画工作 / 生活態度" />
+      </div>
+    </div>
+
+    <label>エピソード・キーワード（箇条書きでOK）</label>
+    <div style="margin-bottom:8px;">
+      <label style="display:inline; font-size:12px; color:#5A5648;">📄 元になる文章を読み込む（PDF・テキストファイル）</label>
+      <input type="file" id="fileInput" accept=".pdf,.txt" style="margin-top:6px; font-size:12px;" onchange="handleFileUpload(event)" />
+      <p id="fileStatus" style="font-size:11px; color:#9A9483; margin:4px 0 0;"></p>
+    </div>
+    <textarea id="episodes" rows="5" placeholder="例：
+・係活動の当番を忘れず行っていた
+・友達が困っているとすぐ声をかけていた
+・発表は苦手だが、ノートは丁寧"></textarea>
+
+    <label>トーン</label>
+    <div class="chips" id="toneChips">
+      <button type="button" class="chip active" data-val="warm">温かく前向き</button>
+      <button type="button" class="chip" data-val="objective">客観的・端的</button>
+      <button type="button" class="chip" data-val="growth">成長を強調</button>
+    </div>
+
+    <button class="primary" onclick="generate()">所見文を作成する</button>
+    <p id="error" style="color:#B7282E; font-size:12px; margin-top:8px;"></p>
+  </div>
+
+  <div class="ad" style="height:80px;">広告枠（レスポンシブ）</div>
+
+  <div id="results"></div>
+</div>
+
+<footer>生成された文章は下書きです。内容を確認し、事実と異なる点がないかご自身の目でチェックしてから使用してください。</footer>
+
+<!-- PDF保存（印刷）用の非表示エリア -->
+<div id="printArea">
+  <h2 style="font-family:'Shippori Mincho',serif;">所見アシスト - 保存記録</h2>
+  <p id="printMeta" style="font-size:13px; color:#555;"></p>
+  <p id="printBody" style="font-size:15px; line-height:2; white-space:pre-wrap;"></p>
+</div>
+
+<script>
+let tone = "warm";
+document.querySelectorAll("#toneChips .chip").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("#toneChips .chip").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    tone = btn.dataset.val;
+  });
+});
+
+const OPENERS = {
+  warm: ["日頃から", "普段の生活の中で", "学校生活の中で"],
+  objective: ["観察の結果", "日々の様子として", "記録を振り返ると"],
+  growth: ["この学期を通じて", "少しずつ成長し、", "取り組みを重ねる中で"]
+};
+const CLOSERS = {
+  warm: ["という姿が、とても微笑ましく感じられました。", "様子が印象的でした。", "点を、これからも大切にしてほしいと思います。"],
+  objective: ["ことが確認できました。", "様子が見られました。", "点が特徴として挙げられます。"],
+  growth: ["という成長が見られました。", "力が着実に育っています。", "姿から、今後の伸びが期待されます。"]
+};
+
+function splitEpisodes(text) {
+  return text
+    .split("\n")
+    .map(s => s.replace(/^[・\-\*\s]+/, "").trim())
+    .filter(Boolean);
+}
+
+function pick(arr, i) { return arr[i % arr.length]; }
+
+function buildSentence(episode, variantIdx) {
+  const opener = pick(OPENERS[tone], variantIdx);
+  const closer = pick(CLOSERS[tone], variantIdx);
+  return `${opener}${episode}${closer}`;
+}
+
+function generate() {
+  const episodesRaw = document.getElementById("episodes").value;
+  const list = splitEpisodes(episodesRaw);
+  const errorEl = document.getElementById("error");
+  const resultsEl = document.getElementById("results");
+  resultsEl.innerHTML = "";
+  errorEl.textContent = "";
+
+  if (list.length === 0) {
+    errorEl.textContent = "エピソードやキーワードを入力してください";
+    return;
+  }
+
+  const grade = document.getElementById("grade").value;
+  const subject = document.getElementById("subject").value;
+
+  for (let v = 0; v < 3; v++) {
+    const sentence = list.map(ep => buildSentence(ep, v + list.indexOf(ep))).join("　");
+    const safeSentence = sentence.replace(/`/g, "'");
+    const uid = "gen" + v + "-" + Date.now();
+    const card = document.createElement("div");
+    card.className = "result";
+    card.innerHTML = `
+      <p id="${uid}-text">${sentence}</p>
+      <div class="meta">
+        <span class="len">${sentence.length}字</span>
+        <div class="actions">
+          <button class="proof-btn" onclick="runProofread('${uid}')">✏️ 添削・誤字脱字</button>
+          <button class="ai-btn" onclick="toggleChat('${uid}')">🤖 AIで改良</button>
+          <button class="save-btn" onclick="saveToHistory('${grade}', '${subject.replace(/'/g, "")}', document.getElementById('${uid}-text').textContent)">保存</button>
+          <button class="copy-btn" onclick="copyText(this, document.getElementById('${uid}-text').textContent)">コピー</button>
+        </div>
+      </div>
+      <div class="proof-result" id="${uid}-proof"></div>
+      ${chatBoxHtml(uid)}
+    `;
+    resultsEl.appendChild(card);
+  }
+}
+
+function copyText(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const old = btn.textContent;
+    btn.textContent = "コピー済み";
+    setTimeout(() => (btn.textContent = old), 1500);
+  });
+}
+
+/* ---------------- 保存・履歴機能 ---------------- */
+
+const HISTORY_KEY = "shoken-assist-history";
+
+function loadHistory() {
+  try {
+    return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveHistoryList(list) {
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+  document.getElementById("histCount").textContent = list.length;
+}
+
+function saveToHistory(grade, subject, text) {
+  const list = loadHistory();
+  const entry = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    at: new Date().toISOString(),
+    grade,
+    subject,
+    text,
+  };
+  list.unshift(entry);
+  saveHistoryList(list);
+  renderHistory();
+  alert("保存しました。上の「保存した所見文」から見返せます。");
+}
+
+function deleteHistoryItem(id) {
+  if (!confirm("この記録を削除しますか？")) return;
+  const list = loadHistory().filter((e) => e.id !== id);
+  saveHistoryList(list);
+  renderHistory();
+}
+
+function fmtDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleString("ja-JP", {
+    year: "numeric", month: "numeric", day: "numeric",
+    hour: "2-digit", minute: "2-digit",
+  });
+}
+
+function renderHistory() {
+  const list = loadHistory();
+  const el = document.getElementById("historyList");
+  document.getElementById("histCount").textContent = list.length;
+
+  if (list.length === 0) {
+    el.innerHTML = `<div class="empty">まだ保存された所見文はありません。<br>文章を作成したら「保存」ボタンを押してください。</div>`;
+    return;
+  }
+
+  el.innerHTML = list.map((e) => {
+    const uid = "h" + e.id;
+    return `
+    <div class="hist-item">
+      <div class="hmeta">
+        <span>${e.grade}${e.subject ? " ・ " + e.subject : ""}</span>
+        <span>${fmtDate(e.at)}</span>
+      </div>
+      <p id="${uid}-text">${e.text}</p>
+      <div class="actions">
+        <button class="proof-btn" onclick="runProofread('${uid}', '${e.id}')">✏️ 添削・誤字脱字</button>
+        <button class="ai-btn" onclick="toggleChat('${uid}')">🤖 AIで改良</button>
+        <button class="save-btn" onclick="copyText(this, document.getElementById('${uid}-text').textContent)">コピー</button>
+        <button class="save-btn" onclick="printAsPdf('${e.grade}', '${(e.subject || "").replace(/'/g, "")}', '${fmtDate(e.at)}', document.getElementById('${uid}-text').textContent)">PDF保存</button>
+        <button class="del-btn" onclick="deleteHistoryItem('${e.id}')">削除</button>
+      </div>
+      <div class="proof-result" id="${uid}-proof"></div>
+      ${chatBoxHtml(uid, e.id)}
+    </div>
+  `;
+  }).join("");
+}
+
+function toggleHistory() {
+  const panel = document.getElementById("historyPanel");
+  const visible = panel.style.display === "block";
+  panel.style.display = visible ? "none" : "block";
+  if (!visible) renderHistory();
+}
+
+function printAsPdf(grade, subject, dateLabel, text) {
+  document.getElementById("printMeta").textContent =
+    `学年: ${grade}　${subject ? "教科・分野: " + subject + "　" : ""}作成日時: ${dateLabel}`;
+  document.getElementById("printBody").textContent = text;
+  window.print();
+}
+
+/* ---------------- AIで改良（チャット） ---------------- */
+
+function chatBoxHtml(uid, historyId) {
+  return `
+    <div class="chat-box" id="${uid}-chatbox">
+      <label style="margin-bottom:4px;">どう改良したいか、AIに伝えてください</label>
+      <textarea id="${uid}-instruction" placeholder="例：もっと具体的なエピソードを増やしてほしい／もう少し短く／表現を柔らかく"></textarea>
+      <button class="chat-send" onclick="sendRefine('${uid}', ${historyId ? `'${historyId}'` : "null"})">AIに改良してもらう</button>
+      <p class="key-status" id="${uid}-status"></p>
+      <div class="chat-result" id="${uid}-result"></div>
+    </div>
+  `;
+}
+
+function toggleChat(uid) {
+  const box = document.getElementById(uid + "-chatbox");
+  const visible = box.style.display === "block";
+  box.style.display = visible ? "none" : "block";
+}
+
+async function sendRefine(uid, historyId) {
+  const originalText = document.getElementById(uid + "-text").textContent;
+  const instruction = document.getElementById(uid + "-instruction").value.trim();
+  const statusEl = document.getElementById(uid + "-status");
+  const resultEl = document.getElementById(uid + "-result");
+
+  if (!instruction) {
+    statusEl.textContent = "どう直したいか、指示を入力してください。";
+    return;
+  }
+
+  statusEl.textContent = "AIが文章を改良中…（数秒お待ちください）";
+  resultEl.style.display = "none";
+
+  try {
+    const response = await fetch("/api/refine", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ originalText, instruction }),
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || `エラー（${response.status}）`);
+
+    const text = data.text;
+
+    resultEl.textContent = text;
+    resultEl.style.display = "block";
+    resultEl.dataset.refined = text;
+    resultEl.dataset.uid = uid;
+    resultEl.dataset.historyId = historyId || "";
+
+    // 適用ボタンを動的に追加
+    let applyBtn = document.getElementById(uid + "-apply");
+    if (!applyBtn) {
+      applyBtn = document.createElement("button");
+      applyBtn.className = "chat-apply";
+      applyBtn.id = uid + "-apply";
+      applyBtn.textContent = "この内容に置き換える";
+      applyBtn.onclick = () => applyRefine(uid, historyId);
+      resultEl.after(applyBtn);
+    }
+
+    statusEl.textContent = "改良案ができました。内容を確認し、問題なければ「置き換える」を押してください。";
+  } catch (e) {
+    console.error(e);
+    statusEl.textContent = "エラーが発生しました：" + e.message;
+  }
+}
+
+function applyRefine(uid, historyId) {
+  const resultEl = document.getElementById(uid + "-result");
+  const refined = resultEl.dataset.refined;
+  if (!refined) return;
+
+  document.getElementById(uid + "-text").textContent = refined;
+
+  if (historyId) {
+    const list = loadHistory();
+    const idx = list.findIndex((e) => e.id === historyId);
+    if (idx !== -1) {
+      list[idx].text = refined;
+      saveHistoryList(list);
+    }
+  }
+
+  document.getElementById(uid + "-status").textContent = "反映しました。";
+}
+
+/* ---------------- 添削・誤字脱字チェック ---------------- */
+
+async function runProofread(uid, historyId) {
+  const text = document.getElementById(uid + "-text").textContent;
+  const proofEl = document.getElementById(uid + "-proof");
+  proofEl.style.display = "block";
+  proofEl.innerHTML = `<p class="key-status">添削中…（数秒お待ちください）</p>`;
+
+  try {
+    const response = await fetch("/api/proofread", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+
+    const parsed = await response.json();
+    if (!response.ok) throw new Error(parsed.error || `エラー（${response.status}）`);
+
+    renderProofResult(uid, historyId, parsed);
+  } catch (e) {
+    console.error(e);
+    proofEl.innerHTML = `<p class="key-status">添削に失敗しました：${e.message}</p>`;
+  }
+}
+
+function renderProofResult(uid, historyId, parsed) {
+  const proofEl = document.getElementById(uid + "-proof");
+  const issues = parsed.issues || [];
+  const correctedText = parsed.corrected_text || "";
+
+  if (issues.length === 0) {
+    proofEl.innerHTML = `<div class="proof-ok">✅ 誤字脱字・不自然な表現は見つかりませんでした。</div>`;
+    return;
+  }
+
+  const labelMap = { "誤字": "誤字", "脱字": "脱字", "表現": "表現", "文法": "文法" };
+  const issuesHtml = issues.map((iss) => `
+    <div class="proof-issue">
+      <div class="label">${labelMap[iss.reason] || iss.reason || "指摘"}</div>
+      <div>「${iss.original}」 → 「${iss.suggestion}」</div>
+    </div>
+  `).join("");
+
+  proofEl.innerHTML = `
+    ${issuesHtml}
+    <button class="chat-apply" id="${uid}-proof-apply">すべての修正を反映する</button>
+  `;
+
+  document.getElementById(uid + "-proof-apply").onclick = () => {
+    document.getElementById(uid + "-text").textContent = correctedText;
+    if (historyId) {
+      const list = loadHistory();
+      const idx = list.findIndex((e) => e.id === historyId);
+      if (idx !== -1) {
+        list[idx].text = correctedText;
+        saveHistoryList(list);
+      }
+    }
+    proofEl.innerHTML = `<div class="proof-ok">✅ 修正を反映しました。</div>`;
+  };
+}
+
+/* 起動時に件数を反映 */
+document.getElementById("histCount").textContent = loadHistory().length;
+
+/* ---------------- ファイル読み込み機能 ---------------- */
+
+if (window['pdfjsLib']) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
+
+async function handleFileUpload(event) {
+  const file = event.target.files[0];
+  const statusEl = document.getElementById("fileStatus");
+  if (!file) return;
+
+  statusEl.textContent = "読み込み中…";
+
+  try {
+    let text = "";
+    if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
+      text = await extractTextFromPdf(file);
+    } else {
+      text = await file.text();
+    }
+
+    text = text.trim();
+    if (!text) {
+      statusEl.textContent = "文章を読み取れませんでした。手入力するか、別のファイルをお試しください。";
+      return;
+    }
+
+    const episodesEl = document.getElementById("episodes");
+    episodesEl.value = text;
+    statusEl.textContent = `読み込み完了（${text.length}字）。内容を確認・編集してから作成してください。`;
+  } catch (e) {
+    console.error(e);
+    statusEl.textContent = "読み込みに失敗しました。ファイル形式をご確認ください。";
+  }
+}
+
+function extractTextFromPdf(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const typedArray = new Uint8Array(reader.result);
+        const pdf = await pdfjsLib.getDocument({ data: typedArray }).promise;
+        let fullText = "";
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          const pageText = content.items.map((item) => item.str).join("");
+          fullText += pageText + "\n";
+        }
+        resolve(fullText);
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
+}
+</script>
+
+</body>
+</html>
