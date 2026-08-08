@@ -73,7 +73,8 @@
     #printArea, #printArea * { visibility:visible; }
     #printArea { position:absolute; top:0; left:0; width:100%; padding:24px; }
   }
-  #printArea { display:none; }
+  #printArea { display:none; } @media print { #printArea { display:block; } }
+
 </style>
 </head>
 <body>
