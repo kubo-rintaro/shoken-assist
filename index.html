@@ -74,7 +74,8 @@
     #printArea { position:absolute; top:0; left:0; width:100%; padding:24px; }
   }
   #printArea { display:none; } @media print { #printArea { display:block; } }
-
+.print-entry { page-break-after: always; }
+.print-entry:last-child { page-break-after: auto; }
 </style>
 </head>
 <body>
@@ -98,7 +99,7 @@
     <button class="history-btn" onclick="toggleHistory()">📁 保存した所見文（<span id="histCount">0</span>）</button>
   </div>
 
-  <div id="historyPanel">
+  <div id="historyPanel"><button class="save-btn" style="margin-bottom:10px;" onclick="printSelectedHistory()">📄 選択した所見文をまとめてPDF保存</button>
     <div id="historyList"></div>
   </div>
 
@@ -148,13 +149,9 @@
 </div>
 
 <footer>生成された文章は下書きです。内容を確認し、事実と異なる点がないかご自身の目でチェックしてから使用してください。</footer>
+<div id="printArea"></div>
 
-<!-- PDF保存（印刷）用の非表示エリア -->
-<div id="printArea">
-  <h2 style="font-family:'Shippori Mincho',serif;">所見アシスト - 保存記録</h2>
-  <p id="printMeta" style="font-size:13px; color:#555;"></p>
-  <p id="printBody" style="font-size:15px; line-height:2; white-space:pre-wrap;"></p>
-</div>
+  
 
 <script>
 let tone = "warm";
@@ -301,7 +298,9 @@ function renderHistory() {
     const uid = "h" + e.id;
     return `
     <div class="hist-item">
-      <div class="hmeta">
+     <label style="display:flex; align-items:center; gap:6px; font-size:12px; margin-bottom:6px;">
+  <input type="checkbox" class="hist-check" value="${e.id}"> この所見文を選択
+</label> <div class="hmeta">
         <span>${e.grade}${e.subject ? " ・ " + e.subject : ""}</span>
         <span>${fmtDate(e.at)}</span>
       </div>
@@ -328,9 +327,31 @@ function toggleHistory() {
 }
 
 function printAsPdf(grade, subject, dateLabel, text) {
-  document.getElementById("printMeta").textContent =
-    `学年: ${grade}　${subject ? "教科・分野: " + subject + "　" : ""}作成日時: ${dateLabel}`;
-  document.getElementById("printBody").textContent = text;
+  document.getElementById("printArea").innerHTML = `
+    <div class="print-entry">
+      <h2 style="font-family:'Shippori Mincho',serif;">所見アシスト − 保存記録</h2>
+      <p style="font-size:13px; color:#555;">学年: ${grade} ${subject ? "教科・分野: " + subject + " " : ""}作成日時: ${dateLabel}</p>
+      <p style="font-size:15px; line-height:2; white-space:pre-wrap;">${text}</p>
+    </div>
+  `;
+  window.print();
+}
+
+function printSelectedHistory() {
+  const checked = Array.from(document.querySelectorAll(".hist-check:checked")).map(cb => cb.value);
+  if (checked.length === 0) {
+    alert("PDFにする所見文を選んでください。");
+    return;
+  }
+  const list = loadHistory();
+  const selected = list.filter(e => checked.includes(e.id));
+  document.getElementById("printArea").innerHTML = selected.map(e => `
+    <div class="print-entry">
+      <h2 style="font-family:'Shippori Mincho',serif;">所見アシスト − 保存記録</h2>
+      <p style="font-size:13px; color:#555;">学年: ${e.grade} ${e.subject ? "教科・分野: " + e.subject + " " : ""}作成日時: ${fmtDate(e.at)}</p>
+      <p style="font-size:15px; line-height:2; white-space:pre-wrap;">${e.text}</p>
+    </div>
+  `).join("");
   window.print();
 }
 
